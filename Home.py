@@ -2,6 +2,7 @@ import streamlit as st
 import time
 from datetime import datetime
 import pandas as pd
+import streamlit.components.v1 as components
 
 # ---------------- CONFIG ----------------
 EDGE_BUZZER_TIME = 3
@@ -94,20 +95,176 @@ This dashboard demonstrates the end-to-end operational workflow of the system un
     """)
 # ---------------- TAB 2: WORKFLOW ----------------
 with tabs[1]:
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.image(
-            "assets/workflow.png",
-            caption="The Workflow of MS Kavach",
-            width=650
+    st.subheader("🔁 MS KAVACH – Operational Workflow")
+
+    left, right = st.columns([2, 1])  # LEFT: workflow | RIGHT: principles
+
+    # ---------------- LEFT: WORKFLOW ----------------
+    with left:
+        mode = st.radio(
+            "Select Workflow Mode",
+            ["🟢 Normal Monitoring", "🚨 Distress Detection & Escalation"],
+            horizontal=True
         )
-    st.markdown("""
-        **Key Design Principles**
-        - Privacy-first activation (event-only imaging)
-        - Human-verified escalation
-        - Zero-latency local deterrence
-        - Modular, low-cost, scalable deployment
-    """)
+
+        components.html(
+            f"""
+            <style>
+            body {{
+                margin: 0;
+                padding: 0;
+                background: transparent;
+            }}
+
+            .page {{
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }}
+
+            .center-frame {{
+                width: 520px;
+                display: flex;
+                justify-content: center;
+            }}
+
+            .flow {{
+                position: relative;
+                width: 360px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-top: 24px;
+            }}
+
+            .box {{
+                width: 360px;
+                padding: 14px;
+                background: #1e293b;
+                color: white;
+                text-align: center;
+                border-radius: 12px;
+                font-size: 22px;
+                font-weight: 600;
+                margin: 10px 0;
+                transition: 0.4s;
+                z-index: 2;
+            }}
+
+            .box.active {{
+                background: {"#22c55e" if mode.startswith("🟢") else "#ef4444"};
+            }}
+
+            .arrow {{
+                width: 3px;
+                height: 24px;
+                background: #64748b;
+                position: relative;
+            }}
+
+            .arrow::after {{
+                content: "";
+                position: absolute;
+                bottom: -6px;
+                left: -6px;
+                border-left: 6px solid transparent;
+                border-right: 6px solid transparent;
+                border-top: 8px solid #64748b;
+            }}
+
+            .loop {{
+                position: absolute;
+                right: -90px;
+                top: 190px;
+                width: 140px;
+                height: 210px;
+                border-right: 3px solid #64748b;
+                border-top: 3px solid #64748b;
+                border-bottom: 3px solid #64748b;
+                border-radius: 0 22px 22px 0;
+            }}
+            </style>
+
+            <div class="page">
+            <div class="center-frame">
+            <div class="flow">
+
+                <div id="b1" class="box">MS Kavach Device</div>
+                <div id="a1" class="arrow"></div>
+
+                <div id="b2" class="box">
+                    {"Continuous Monitoring" if mode.startswith("🟢") else "Distress Detected"}
+                </div>
+                <div id="a2" class="arrow"></div>
+
+                <div id="b3" class="box">
+                    {"All-Safe Signal" if mode.startswith("🟢") else "Edge Buzzer Activated"}
+                </div>
+                <div id="a3" class="arrow"></div>
+
+                <div id="b4" class="box">
+                    {"Control Room Logs" if mode.startswith("🟢") else "Image + Location Sent"}
+                </div>
+
+                {("""
+                <div id='a4' class='arrow'></div>
+                <div id='b5' class='box'>Control Room Verification</div>
+                <div id='a5' class='arrow'></div>
+                <div id='b6' class='box'>Info Passed to Police</div>
+                <div id='a6' class='arrow'></div>
+                <div id='b7' class='box'>Police Response</div>
+                """) if mode.startswith("🚨") else ""}
+
+                {"<div id='loop' class='loop'></div>" if mode.startswith("🟢") else ""}
+
+            </div>
+            </div>
+            </div>
+
+            <script>
+            const steps = {(
+                "['b1','a1','b2','a2','b3','a3','b4','loop']"
+                if mode.startswith("🟢")
+                else "['b1','a1','b2','a2','b3','a3','b4','a4','b5','a5','b6','a6','b7']"
+            )};
+
+            let i = 0;
+            setInterval(() => {{
+                document.querySelectorAll('.box,.arrow,.loop')
+                    .forEach(el => el.classList.remove('active'));
+
+                document.getElementById(steps[i]).classList.add('active');
+                i = (i + 1) % steps.length;
+            }}, 900);
+            </script>
+            """,
+            height=720 if mode.startswith("🚨") else 560
+        )
+
+        if mode.startswith("🟢"):
+            st.success("System operating under continuous monitoring with closed feedback loop.")
+        else:
+            st.error("Distress detected — escalation in progress.")
+
+    # ---------------- RIGHT: KEY DESIGN PRINCIPLES ----------------
+    with right:
+        st.markdown(
+            """
+            <div style="margin-top: 110px;">
+                <h3>🔑 Key Design Principles</h3>
+                <ul style="font-size: 18px; line-height: 1.8;">
+                    <li>🔐 <b>Privacy-first activation</b> (event-only imaging)</li>
+                    <li>👨‍💻 <b>Human-in-the-loop verification</b></li>
+                    <li>⚡ <b>Immediate edge-level deterrence</b></li>
+                    <li>📡 <b>Secure alert escalation to control room</b></li>
+                    <li>🚓 <b>Rapid response coordination</b></li>
+                    <li>🧩 <b>Low-cost, modular & scalable design</b></li>
+                </ul>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
 
 # ---------------- TAB 3: LIVE SIMULATION ----------------
 with tabs[2]:
